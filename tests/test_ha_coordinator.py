@@ -26,7 +26,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from custom_components.zhijin_ble import async_setup_entry, async_unload_entry
+from custom_components.zhijin_ble import (
+    _async_reload_entry,
+    async_setup_entry,
+    async_unload_entry,
+)
 from custom_components.zhijin_ble.ble.const import (
     ConnectionMode,
     PowerSaveMode,
@@ -210,3 +214,27 @@ class TestZhiJinCoordinator:
             assert await async_unload_entry(hass, entry) is True
             assert mock_disc.await_count == 2
             assert (DOMAIN, offline_issue_id("25:08:00:00:0A:BA")) in ha_state["deleted_issues"]
+
+    async def test_temperature_offset_updates_live_without_reloading_ble(self) -> None:
+        hass = HomeAssistant()
+        entry = _make_entry()
+        coordinator = ZhiJinCoordinator(hass, entry)
+        entry.runtime_data = coordinator
+        coordinator._state.telemetry = decode_telemetry(REAL_TELEMETRY_12_0V[3:-2], battery_type=1)
+
+        # Updating offset persists to entry.options and updates calibrated temperature immediately
+        await coordinator.async_set_temperature_offset(-5.3)
+        assert coordinator.temperature_offset == -5.3
+        assert coordinator.data.calibrated_temperature == 7.9
+        assert entry.options[CONF_TEMPERATURE_OFFSET] == -5.3
+
+        # Options update listener applies temperature_offset live without triggering full reload
+        entry.options = {**entry.options, CONF_TEMPERATURE_OFFSET: -4.2}
+        await _async_reload_entry(hass, entry)
+        assert coordinator.temperature_offset == -4.2
+        assert hass.config_entries.reloaded == []
+
+        # Changing a BLE/polling option triggers a full reload
+        entry.options = {**entry.options, CONF_POLL_INTERVAL: 120}
+        await _async_reload_entry(hass, entry)
+        assert hass.config_entries.reloaded == [entry.entry_id]

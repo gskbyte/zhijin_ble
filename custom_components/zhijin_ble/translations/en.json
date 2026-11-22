@@ -149,6 +149,9 @@
       },
       "recovery_voltage": {
         "name": "Recovery Voltage"
+      },
+      "temperature_offset": {
+        "name": "Temperature Offset"
       }
     },
     "select": {

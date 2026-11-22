@@ -89,6 +89,7 @@ custom_components/zhijin_ble/
 | Number (`config`) | Full Voltage | `0x1004` | `10.0 – 30.0 V` (step `0.1`) |
 | Number (`config`) | Cutoff Voltage | `0x1006` | `9.0 – 25.0 V` (step `0.1`) |
 | Number (`config`) | Recovery Voltage | `0x1009` | `10.0 – 28.0 V` (step `0.1`) |
+| Number (`config`) | Temperature Offset | Local | `-25.0 – +25.0 °C` (step `0.1`, synced with Options) |
 | Select (`config`) | Battery Type | `0x1001` | Lithium, Gel, Lead-Acid |
 | Select (`config`) | Output Mode | `0x1005` | Manual, Auto, Timer, Direct |
 | Select (`config`) | Voltage Detect Mode | `0x1008` | Auto, 12V – 96V |

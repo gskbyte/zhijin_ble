@@ -1,4 +1,4 @@
-"""Number entities for ZhiJin BLE voltage thresholds."""
+"""Number entities for ZhiJin BLE voltage thresholds and local calibration."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from homeassistant.components.number import (
     NumberEntityDescription,
     NumberMode,
 )
-from homeassistant.const import EntityCategory, UnitOfElectricPotential
+from homeassistant.const import EntityCategory, UnitOfElectricPotential, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -20,11 +20,15 @@ from .ble.const import (
     CUTOFF_VOLTAGE_RANGE,
     FULL_VOLTAGE_RANGE,
     RECOVERY_VOLTAGE_RANGE,
+    TEMPERATURE_OFFSET_RANGE,
     SettingsRegister,
 )
 from .ble.models import SettingsData
 from .coordinator import ZhiJinCoordinator
 from .entity import ZhiJinEntity
+
+# Use native TEMPERATURE_DELTA when supported (HA 2025+), avoiding absolute °C->°F +32 shift.
+_TEMPERATURE_DELTA_DEVICE_CLASS = getattr(NumberDeviceClass, "TEMPERATURE_DELTA", None)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -74,6 +78,18 @@ NUMBER_DESCRIPTIONS: tuple[ZhiJinNumberEntityDescription, ...] = (
     ),
 )
 
+TEMPERATURE_OFFSET_DESCRIPTION = NumberEntityDescription(
+    key="temperature_offset",
+    device_class=_TEMPERATURE_DELTA_DEVICE_CLASS,
+    icon="mdi:thermometer-plus",
+    native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+    native_min_value=TEMPERATURE_OFFSET_RANGE[0],
+    native_max_value=TEMPERATURE_OFFSET_RANGE[1],
+    native_step=0.1,
+    mode=NumberMode.BOX,
+    entity_category=EntityCategory.CONFIG,
+)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -82,9 +98,11 @@ async def async_setup_entry(
 ) -> None:
     """Set up ZhiJin BLE number entities."""
     coordinator = entry.runtime_data
-    async_add_entities(
+    entities: list[NumberEntity] = [
         ZhiJinNumberEntity(coordinator, description) for description in NUMBER_DESCRIPTIONS
-    )
+    ]
+    entities.append(ZhiJinTemperatureOffsetNumberEntity(coordinator))
+    async_add_entities(entities)
 
 
 class ZhiJinNumberEntity(ZhiJinEntity, NumberEntity):
@@ -110,3 +128,25 @@ class ZhiJinNumberEntity(ZhiJinEntity, NumberEntity):
     async def async_set_native_value(self, value: float) -> None:
         """Write updated voltage threshold to the controller."""
         await self.coordinator.async_write_voltage(self.entity_description.register, value)
+
+
+class ZhiJinTemperatureOffsetNumberEntity(ZhiJinEntity, NumberEntity):
+    """Device configuration entity for local temperature calibration offset (°C)."""
+
+    entity_description = TEMPERATURE_OFFSET_DESCRIPTION
+
+    def __init__(self, coordinator: ZhiJinCoordinator) -> None:
+        super().__init__(coordinator, TEMPERATURE_OFFSET_DESCRIPTION.key)
+
+    @property
+    def available(self) -> bool:
+        """Always available since temperature calibration is stored locally."""
+        return True
+
+    @property
+    def native_value(self) -> float:
+        return self.coordinator.temperature_offset
+
+    async def async_set_native_value(self, value: float) -> None:
+        """Persist new temperature calibration offset and immediately update Temperature."""
+        await self.coordinator.async_set_temperature_offset(value)

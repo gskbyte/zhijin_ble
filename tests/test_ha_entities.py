@@ -35,6 +35,7 @@ from custom_components.zhijin_ble.coordinator import ZhiJinCoordinator
 from custom_components.zhijin_ble.diagnostics import async_get_config_entry_diagnostics
 from custom_components.zhijin_ble.number import (
     NUMBER_DESCRIPTIONS,
+    TEMPERATURE_OFFSET_DESCRIPTION,
 )
 from custom_components.zhijin_ble.number import (
     async_setup_entry as setup_numbers,
@@ -212,11 +213,11 @@ class TestEntities:
         await switches[0].async_turn_on()
         coordinator.async_write_register.assert_awaited_with(SettingsRegister.LOAD_SWITCH, 1)
 
-        # Numbers
+        # Numbers (3 controller voltage thresholds + 1 local temperature_offset)
         numbers = []
         await setup_numbers(hass, entry, numbers.extend)
         num_by_key = {e.entity_description.key: e for e in numbers}
-        assert len(num_by_key) == len(NUMBER_DESCRIPTIONS)
+        assert len(num_by_key) == len(NUMBER_DESCRIPTIONS) + 1
         assert num_by_key["full_voltage"].native_value == 12.6
         assert num_by_key["cutoff_voltage"].native_value == 10.0
         assert num_by_key["recovery_voltage"].native_value == 11.0
@@ -224,6 +225,15 @@ class TestEntities:
         coordinator.async_write_voltage.assert_awaited_once_with(
             SettingsRegister.CUTOFF_VOLTAGE, 11.3
         )
+
+        # Temperature Offset entity lives in Device Configuration and updates live
+        temp_offset_entity = num_by_key["temperature_offset"]
+        assert temp_offset_entity.available is True
+        assert temp_offset_entity.native_value == 0.0
+        await temp_offset_entity.async_set_native_value(-5.3)
+        assert temp_offset_entity.native_value == -5.3
+        assert coordinator.data.calibrated_temperature == 19.2
+        assert entry.options["temperature_offset"] == -5.3
 
         # Selects
         selects = []
@@ -281,6 +291,7 @@ class TestManifestAndTranslationsIntegrity:
             assert desc.key in entities["binary_sensor"]
         for desc in NUMBER_DESCRIPTIONS:
             assert desc.key in entities["number"]
+        assert TEMPERATURE_OFFSET_DESCRIPTION.key in entities["number"]
         for desc in SELECT_DESCRIPTIONS:
             assert desc.key in entities["select"]
         assert "load_switch" in entities["switch"]

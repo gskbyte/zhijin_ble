@@ -128,6 +128,10 @@ def install_ha_stubs() -> dict[str, Any]:
         async def async_reload(self, entry_id: str) -> None:
             self.reloaded.append(entry_id)
 
+        def async_update_entry(self, entry: Any, *, options: dict[str, Any] | None = None) -> None:
+            if options is not None:
+                entry.options = dict(options)
+
     class HomeAssistant:
         def __init__(self) -> None:
             self.bus = FakeBus()
@@ -464,6 +468,7 @@ def install_ha_stubs() -> dict[str, Any]:
 
     class NumberDeviceClass(StrEnum):
         VOLTAGE = "voltage"
+        TEMPERATURE_DELTA = "temperature_delta"
 
     class NumberMode(StrEnum):
         BOX = "box"
@@ -472,6 +477,7 @@ def install_ha_stubs() -> dict[str, Any]:
     class NumberEntityDescription:
         key: str
         device_class: Any = None
+        icon: str | None = None
         native_unit_of_measurement: str | None = None
         native_min_value: float | None = None
         native_max_value: float | None = None

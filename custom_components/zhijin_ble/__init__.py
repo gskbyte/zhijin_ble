@@ -9,7 +9,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .const import CONF_ADDRESS, DOMAIN, offline_issue_id
+from .const import (
+    CONF_ADDRESS,
+    CONF_TEMPERATURE_OFFSET,
+    DEFAULT_OPTIONS,
+    DOMAIN,
+    offline_issue_id,
+)
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -74,5 +80,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ZhiJinConfigEntry) -> b
 
 
 async def _async_reload_entry(hass: HomeAssistant, entry: ZhiJinConfigEntry) -> None:
-    """Reload config entry when user updates integration options."""
+    """Apply live-updatable options in-place or reload when BLE/polling options change."""
+    coordinator = getattr(entry, "runtime_data", None)
+    if coordinator is not None and coordinator.can_apply_options_live(dict(entry.options)):
+        merged_offset = float({**DEFAULT_OPTIONS, **entry.options}[CONF_TEMPERATURE_OFFSET])
+        coordinator.async_apply_temperature_offset(merged_offset)
+        return
     await hass.config_entries.async_reload(entry.entry_id)

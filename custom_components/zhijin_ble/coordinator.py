@@ -60,6 +60,9 @@ class ZhiJinCoordinator(DataUpdateCoordinator[ControllerState]):
         self.device_name: str = entry.data.get(CONF_NAME) or entry.title or self.address
 
         opts = _merged_options(entry)
+        self._applied_ble_options: dict[str, Any] = {
+            k: v for k, v in opts.items() if k != CONF_TEMPERATURE_OFFSET
+        }
         self.client_config = ClientConfig(
             connection_mode=ConnectionMode(opts[CONF_CONNECTION_MODE]),
             command_timeout=float(opts[CONF_COMMAND_TIMEOUT]),
@@ -225,6 +228,29 @@ class ZhiJinCoordinator(DataUpdateCoordinator[ControllerState]):
     async def async_write_voltage(self, register: SettingsRegister, volts: float) -> None:
         """Encode and write a voltage threshold register."""
         await self.async_write_register(register, encode_voltage(volts))
+
+    def can_apply_options_live(self, new_options: dict[str, Any]) -> bool:
+        """Return True if only live-updatable options (temperature_offset) changed."""
+        merged = {**DEFAULT_OPTIONS, **new_options}
+        new_ble_options = {k: v for k, v in merged.items() if k != CONF_TEMPERATURE_OFFSET}
+        return new_ble_options == self._applied_ble_options
+
+    def async_apply_temperature_offset(self, offset: float) -> None:
+        """Apply a new temperature calibration offset immediately without reconnecting BLE."""
+        rounded = round(float(offset), 2)
+        self.temperature_offset = rounded
+        self._state.temperature_offset = rounded
+        self.async_set_updated_data(self._state)
+
+    async def async_set_temperature_offset(self, offset: float) -> None:
+        """Update and persist the temperature calibration offset."""
+        rounded = round(float(offset), 2)
+        self.async_apply_temperature_offset(rounded)
+        if self.entry.options.get(CONF_TEMPERATURE_OFFSET) != rounded:
+            self.hass.config_entries.async_update_entry(
+                self.entry,
+                options={**self.entry.options, CONF_TEMPERATURE_OFFSET: rounded},
+            )
 
     async def async_shutdown_ble(self) -> None:
         """Cleanly disconnect the BLE client on unload or Home Assistant shutdown."""
