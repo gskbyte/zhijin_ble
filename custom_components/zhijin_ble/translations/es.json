@@ -1,0 +1,201 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Seleccionar controlador solar",
+        "description": "Elige un controlador detectado o introduce su dirección Bluetooth manualmente.",
+        "data": {
+          "address": "Controlador",
+          "connection_mode": "Modo de conexión",
+          "poll_interval": "Intervalo de consulta (segundos)",
+          "power_save_mode": "Modo de consulta de ahorro de energía",
+          "power_save_interval": "Intervalo de ahorro de energía (segundos)"
+        }
+      },
+      "bluetooth_confirm": {
+        "title": "Añadir {name}",
+        "description": "¿Quieres configurar el controlador {name} ({address})?",
+        "data": {
+          "connection_mode": "Modo de conexión",
+          "poll_interval": "Intervalo de consulta (segundos)",
+          "power_save_mode": "Modo de consulta de ahorro de energía",
+          "power_save_interval": "Intervalo de ahorro de energía (segundos)"
+        }
+      },
+      "manual": {
+        "title": "Dirección Bluetooth manual",
+        "description": "No se han detectado controladores ZhiJin sin configurar en este momento. Introduce manualmente la dirección MAC Bluetooth (o UUID).",
+        "data": {
+          "address": "Dirección Bluetooth",
+          "name": "Nombre descriptivo (opcional)",
+          "connection_mode": "Modo de conexión",
+          "poll_interval": "Intervalo de consulta (segundos)",
+          "power_save_mode": "Modo de consulta de ahorro de energía",
+          "power_save_interval": "Intervalo de ahorro de energía (segundos)"
+        }
+      }
+    },
+    "error": {
+      "invalid_address": "Introduce una dirección Bluetooth válida."
+    },
+    "abort": {
+      "already_configured": "Este controlador ya está configurado.",
+      "no_devices_found": "No se encontraron controladores ZhiJin BLE."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Ajustes de ZhiJin BLE",
+        "description": "Configura los intervalos de consulta, el ahorro de energía, los reintentos BLE y la calibración.",
+        "data": {
+          "connection_mode": "Modo de conexión",
+          "poll_interval": "Intervalo de consulta (segundos)",
+          "power_save_mode": "Modo de consulta de ahorro de energía",
+          "power_save_interval": "Intervalo de ahorro de energía (segundos)",
+          "settings_interval": "Intervalo de actualización de ajustes (segundos)",
+          "command_timeout": "Tiempo de espera de comando (segundos)",
+          "command_retries": "Reintentos de comando por sesión",
+          "unavailable_after_failures": "Fallos consecutivos antes de no disponible",
+          "offline_issue_seconds": "Retardo de aviso de desconexión (segundos)",
+          "temperature_offset": "Compensación de temperatura (°C)"
+        },
+        "data_description": {
+          "temperature_offset": "Compensación sumada a la lectura de temperatura sin ajustar del controlador (p. ej., -5.3 para corregir el autocalentamiento interno de la placa)."
+        }
+      }
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "on_demand": "Bajo demanda — Conecta solo en cada consulta (menor consumo del controlador, libera ranuras del proxy BLE y permite usar la app móvil entre consultas)",
+        "persistent": "Persistente — Mantiene la conexión BLE abierta continuamente (respuesta más rápida del interruptor e intervalos cortos)"
+      }
+    },
+    "power_save_mode": {
+      "options": {
+        "night_idle": "Noche e inactivo — Reduce la frecuencia cuando no hay sol y las corrientes de carga/descarga son 0 A",
+        "night": "Solo noche — Reduce la frecuencia siempre que no haya entrada solar",
+        "idle": "Inactivo — Reduce la frecuencia cuando las corrientes de carga y descarga son 0 A (incluso de día nublado)",
+        "off": "Desactivado — Consulta siempre con el intervalo normal"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery_voltage": {
+        "name": "Voltaje de batería"
+      },
+      "battery_percent": {
+        "name": "Batería"
+      },
+      "healthy_usable_battery": {
+        "name": "Batería útil saludable"
+      },
+      "charge_current": {
+        "name": "Corriente de carga"
+      },
+      "solar_power": {
+        "name": "Potencia solar"
+      },
+      "discharge_current": {
+        "name": "Corriente de descarga"
+      },
+      "load_power": {
+        "name": "Potencia de salida"
+      },
+      "temperature": {
+        "name": "Temperatura"
+      },
+      "total_generation": {
+        "name": "Generación total"
+      },
+      "rssi": {
+        "name": "Intensidad de señal Bluetooth"
+      },
+      "poll_latency": {
+        "name": "Latencia de consulta"
+      },
+      "connection_success_rate": {
+        "name": "Tasa de éxito de comandos"
+      }
+    },
+    "binary_sensor": {
+      "solar_status": {
+        "name": "Estado solar"
+      },
+      "wind_status": {
+        "name": "Estado eólico"
+      },
+      "load_status": {
+        "name": "Estado de salida"
+      },
+      "connectivity": {
+        "name": "Conectividad Bluetooth"
+      },
+      "power_save_active": {
+        "name": "Consulta de ahorro de energía"
+      }
+    },
+    "number": {
+      "full_voltage": {
+        "name": "Voltaje de carga completa"
+      },
+      "cutoff_voltage": {
+        "name": "Voltaje de corte"
+      },
+      "recovery_voltage": {
+        "name": "Voltaje de recuperación"
+      },
+      "temperature_offset": {
+        "name": "Compensación de temperatura"
+      }
+    },
+    "select": {
+      "battery_type": {
+        "name": "Tipo de batería",
+        "state": {
+          "lithium": "Litio",
+          "gel": "Gel",
+          "lead_acid": "Plomo-ácido"
+        }
+      },
+      "output_mode": {
+        "name": "Modo de salida",
+        "state": {
+          "manual": "Manual",
+          "auto": "Automático",
+          "timer": "Temporizador",
+          "direct": "Directo"
+        }
+      },
+      "voltage_detect_mode": {
+        "name": "Detección de voltaje",
+        "state": {
+          "auto": "Automático",
+          "12v": "12V",
+          "24v": "24V",
+          "36v": "36V",
+          "48v": "48V",
+          "60v": "60V",
+          "72v": "72V",
+          "84v": "84V",
+          "96v": "96V"
+        }
+      }
+    },
+    "switch": {
+      "load_switch": {
+        "name": "Interruptor manual de salida"
+      }
+    }
+  },
+  "issues": {
+    "device_offline": {
+      "title": "Controlador ZhiJin BLE desconectado ({name})",
+      "description": "No se ha podido comunicar por Bluetooth con el controlador {name} ({address}) durante más de {minutes} minuto(s). Comprueba que el controlador tiene alimentación, está dentro del alcance Bluetooth (o cobertura del proxy) y que la app móvil oficial no está ocupando la conexión BLE exclusiva."
+    }
+  }
+}

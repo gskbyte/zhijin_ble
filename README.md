@@ -50,7 +50,7 @@ custom_components/zhijin_ble/
 ├── select.py            # Battery type / Output mode / Voltage detect configuration entities
 ├── diagnostics.py       # One-click Home Assistant diagnostic dump
 ├── brand/               # Local brand icons (icon.png 256px, icon@2x.png 512px)
-└── translations/        # English translations (en.json)
+└── translations/        # Translations (en.json, es.json)
 ```
 
 ---

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import struct
 from pathlib import Path
 from unittest.mock import AsyncMock
@@ -318,14 +319,32 @@ class TestManifestAndTranslationsIntegrity:
         assert bit_depth == 8
         assert color_type == 6  # RGBA (transparent background)
 
-    def test_only_english_translation_exists_and_matches_all_entity_keys(self) -> None:
+    def test_translations_exist_and_match_all_keys_and_placeholders(self) -> None:
         trans_dir = INTEGRATION_DIR / "translations"
         translation_files = sorted(p.name for p in trans_dir.glob("*.json"))
-        assert translation_files == ["en.json"]
+        assert translation_files == ["en.json", "es.json"]
 
         strings = json.loads((INTEGRATION_DIR / "strings.json").read_text(encoding="utf-8"))
         en = json.loads((trans_dir / "en.json").read_text(encoding="utf-8"))
+        es = json.loads((trans_dir / "es.json").read_text(encoding="utf-8"))
         assert strings == en
+
+        key_pattern = re.compile(r"^[a-z0-9]+([a-z0-9-_]*[a-z0-9]+)?$")
+        placeholder_pattern = re.compile(r"\{[a-z0-9_]+\}")
+
+        def _assert_structure_matches(ref: object, candidate: object, path: str = "") -> None:
+            assert type(ref) is type(candidate), f"Type mismatch at {path}"
+            if isinstance(ref, dict) and isinstance(candidate, dict):
+                assert set(ref.keys()) == set(candidate.keys()), f"Key mismatch at {path}"
+                for k in ref:
+                    assert key_pattern.match(k), f"Invalid hassfest key '{k}' at {path}"
+                    _assert_structure_matches(ref[k], candidate[k], f"{path}.{k}" if path else k)
+            elif isinstance(ref, str) and isinstance(candidate, str):
+                assert set(placeholder_pattern.findall(ref)) == set(
+                    placeholder_pattern.findall(candidate)
+                ), f"Placeholder mismatch at {path}"
+
+        _assert_structure_matches(strings, es)
 
         entities = en["entity"]
         for desc in SENSOR_DESCRIPTIONS:
