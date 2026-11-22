@@ -96,15 +96,22 @@ class TestZhiJinBLEClient:
         assert settings is not None
         assert settings.battery_type == BatteryType.LITHIUM
         assert settings.full_voltage == 12.6
+        # Recalculated with 3S Li-ion curve (full_voltage=12.6V): 12.0V -> 78.0%
+        assert telem.healthy_usable_battery == 78.0
 
-        # Both reads happened on a single BLE connection, then disconnected cleanly
-        assert len(created) == 1
+        # Subsequent telemetry-only poll retains cached 3S Li-ion full_voltage
+        telem2, settings2 = await client.poll(include_settings=False)
+        assert settings2 is None
+        assert telem2.healthy_usable_battery == 78.0
+
+        # First poll used 1 connection for both reads; second poll opened a fresh on_demand connection
+        assert len(created) == 2
         assert created[0].start_notify_calls == 1
         assert created[0].stop_notify_calls == 1
         assert created[0].disconnect_calls == 1
         assert client.is_connected is False
-        assert client.stats.connect_successes == 1
-        assert client.stats.commands_succeeded == 2
+        assert client.stats.connect_successes == 2
+        assert client.stats.commands_succeeded == 3
         assert client.stats.command_success_rate == 100.0
 
     async def test_persistent_mode_reuses_single_connection(

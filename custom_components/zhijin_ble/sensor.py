@@ -26,7 +26,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import ZhiJinConfigEntry
+from .ble.const import BatteryType
 from .ble.models import ControllerState
+from .ble.protocol import is_lithium_3s
 from .coordinator import ZhiJinCoordinator
 from .entity import ZhiJinEntity
 
@@ -55,7 +57,16 @@ def _healthy_battery_attrs(state: ControllerState) -> dict[str, Any]:
     if state.telemetry is not None:
         attrs["charging"] = state.telemetry.is_charging
     if state.settings is not None:
-        attrs["battery_type"] = state.settings.battery_type_label or state.settings.battery_type
+        label = state.settings.battery_type_label or state.settings.battery_type
+        attrs["battery_type"] = label
+        if state.settings.battery_type == BatteryType.LITHIUM:
+            attrs["battery_profile"] = (
+                "3S Li-ion"
+                if is_lithium_3s(state.settings.battery_type, state.settings.full_voltage)
+                else "4S LiFePO4"
+            )
+        else:
+            attrs["battery_profile"] = str(label)
     return attrs
 
 

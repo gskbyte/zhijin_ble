@@ -205,6 +205,7 @@ class ZhiJinBLEClient:
         self._last_completed_at: float = 0.0
         self._last_command_finished_at: float = 0.0
         self._last_battery_type: int = BatteryType.LEAD_ACID
+        self._last_full_voltage: float | None = None
 
         self.stats = ConnectionStats()
 
@@ -600,19 +601,37 @@ class ZhiJinBLEClient:
                 if self.config.connection_mode == ConnectionMode.ON_DEMAND:
                     await self._disconnect_unlocked()
 
-    async def read_telemetry(self, *, battery_type: int | None = None) -> TelemetryData:
+    async def read_telemetry(
+        self,
+        *,
+        battery_type: int | None = None,
+        full_voltage: float | None = None,
+    ) -> TelemetryData:
         """Read and decode real-time telemetry registers (0x0001..0x000A)."""
         async with self._operation_session():
-            return await self._read_telemetry_unlocked(battery_type=battery_type)
+            return await self._read_telemetry_unlocked(
+                battery_type=battery_type,
+                full_voltage=full_voltage,
+            )
 
-    async def _read_telemetry_unlocked(self, *, battery_type: int | None = None) -> TelemetryData:
+    async def _read_telemetry_unlocked(
+        self,
+        *,
+        battery_type: int | None = None,
+        full_voltage: float | None = None,
+    ) -> TelemetryData:
         frame = await self._execute_command(
             build_telemetry_request(unit_id=self.config.unit_id),
             expected_func=FUNC_READ_HOLDING,
             expected_byte_count=TELEMETRY_RESPONSE_BYTES,
         )
         effective_type = self._last_battery_type if battery_type is None else battery_type
-        return decode_telemetry(frame.register_data, battery_type=effective_type)
+        effective_full_v = self._last_full_voltage if full_voltage is None else full_voltage
+        return decode_telemetry(
+            frame.register_data,
+            battery_type=effective_type,
+            full_voltage=effective_full_v,
+        )
 
     async def read_settings(self) -> SettingsData:
         """Read and decode controller settings registers (0x1001..0x1009)."""
@@ -627,6 +646,7 @@ class ZhiJinBLEClient:
         )
         settings = decode_settings(frame.register_data)
         self._last_battery_type = settings.battery_type
+        self._last_full_voltage = settings.full_voltage
         return settings
 
     async def poll(
@@ -634,6 +654,7 @@ class ZhiJinBLEClient:
         *,
         include_settings: bool = False,
         battery_type: int | None = None,
+        full_voltage: float | None = None,
     ) -> tuple[TelemetryData, SettingsData | None]:
         """Read telemetry (and optionally settings) within a single BLE session.
 
@@ -644,13 +665,21 @@ class ZhiJinBLEClient:
             settings: SettingsData | None = None
             if include_settings:
                 # Fetch telemetry first, then settings (matching official controller sequence).
-                telemetry = await self._read_telemetry_unlocked(battery_type=battery_type)
+                telemetry = await self._read_telemetry_unlocked(
+                    battery_type=battery_type,
+                    full_voltage=full_voltage,
+                )
                 settings = await self._read_settings_unlocked()
                 telemetry = recalculate_telemetry_for_battery_type(
-                    telemetry, settings.battery_type
+                    telemetry,
+                    settings.battery_type,
+                    full_voltage=settings.full_voltage,
                 )
             else:
-                telemetry = await self._read_telemetry_unlocked(battery_type=battery_type)
+                telemetry = await self._read_telemetry_unlocked(
+                    battery_type=battery_type,
+                    full_voltage=full_voltage,
+                )
             return telemetry, settings
 
     async def read_raw_registers(

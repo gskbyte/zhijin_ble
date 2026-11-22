@@ -54,6 +54,7 @@ from .protocol import (
     decode_telemetry,
     decode_write_ack,
     encode_voltage,
+    is_lithium_3s,
     recalculate_telemetry_for_battery_type,
     verify_crc,
 )
@@ -112,6 +113,7 @@ __all__ = [
     "decode_write_ack",
     "encode_voltage",
     "find_controller",
+    "is_lithium_3s",
     "is_zhijin_advertisement",
     "recalculate_telemetry_for_battery_type",
     "scan_controllers",

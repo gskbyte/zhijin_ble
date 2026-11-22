@@ -73,7 +73,8 @@ Request: `01 03 00 01 00 10 15 c6` → Response `byte_count = 0x14` (20 bytes)
 - `load_power (W) = round(battery_voltage * discharge_current, 1)`
 - `battery_percent (%)`: `sys = 1 if V <= 17.0 else 2`; linear clamp between `9.0 * sys` (0%) and `12.6 * sys` (100%).
 - `healthy_usable_battery (%)`: chemistry-aware piecewise linear curve on `V / sys`:
-  - **Lithium (`1`)**: `12.2V → 0%`, `13.0V → 30%`, `13.2V → 70%`, `13.4V → 100%`
+  - **Lithium — 3S Li-ion (`1`, `full_voltage / sys <= 13.0V`, e.g. `12.6V`)**: `10.5V → 0%`, `11.1V → 20%`, `11.4V → 40%`, `11.8V → 70%`, `12.3V → 90%`, `12.6V → 100%`
+  - **Lithium — 4S LiFePO4 (`1`, `full_voltage / sys > 13.0V`, e.g. `14.4V`)**: `12.2V → 0%`, `13.0V → 30%`, `13.2V → 70%`, `13.4V → 100%`
   - **Gel (`2`)**: `11.9V → 0%`, `12.1V → 15%`, `12.3V → 45%`, `12.5V → 75%`, `12.8V → 100%`
   - **Lead-Acid (`3`)**: `12.0V → 0%`, `12.1V → 20%`, `12.3V → 50%`, `12.5V → 80%`, `12.7V → 100%`
 

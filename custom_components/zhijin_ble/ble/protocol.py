@@ -17,7 +17,9 @@ from .const import (
     FUNC_READ_HOLDING,
     FUNC_WRITE_MULTIPLE,
     FUNC_WRITE_SINGLE,
+    HEALTHY_BATTERY_CURVE_LITHIUM_3S,
     HEALTHY_BATTERY_CURVES,
+    LITHIUM_3S_FULL_VOLTAGE_THRESHOLD,
     REG_SETTINGS_REQUEST_COUNT,
     REG_SETTINGS_START,
     REG_TELEMETRY_REQUEST_COUNT,
@@ -162,19 +164,41 @@ def calculate_battery_percent(voltage: float) -> float:
     return round(max(0.0, min(100.0, pct)), 1)
 
 
-def calculate_healthy_usable_percent(voltage: float, battery_type: int) -> float:
+def is_lithium_3s(battery_type: int, full_voltage: float | None) -> bool:
+    """Return True when Lithium chemistry is configured for a 3S (or 6S @ 24V) Li-ion pack.
+
+    Determined from the controller's ``full_voltage`` register normalized to a 12V
+    unit (<= 13.0 V -> 3S Li-ion such as 12.6 V; > 13.0 V -> 4S LiFePO4 such as 14.4 V).
+    """
+    if battery_type != BatteryType.LITHIUM or full_voltage is None or full_voltage <= 0:
+        return False
+    multiplier = 1 if full_voltage <= SYSTEM_24V_THRESHOLD else 2
+    return (full_voltage / multiplier) <= LITHIUM_3S_FULL_VOLTAGE_THRESHOLD
+
+
+def calculate_healthy_usable_percent(
+    voltage: float,
+    battery_type: int,
+    *,
+    full_voltage: float | None = None,
+) -> float:
     """Calculate chemistry-aware health-safe usable battery percentage.
 
     12V systems (voltage <= 17V) use the 12V curve directly; 24V systems are
-    normalized to the 12V scale by dividing by 2.
+    normalized to the 12V scale by dividing by 2. For ``BatteryType.LITHIUM``,
+    when ``full_voltage`` is known and <= 13.0V (per 12V unit), the 3S Li-ion
+    curve is used instead of the 4S LiFePO4 curve.
     """
     multiplier = 1 if voltage <= SYSTEM_24V_THRESHOLD else 2
     v_norm = voltage / multiplier
-    try:
-        chemistry = BatteryType(battery_type)
-    except ValueError:
-        chemistry = BatteryType.LEAD_ACID
-    curve = HEALTHY_BATTERY_CURVES[chemistry]
+    if is_lithium_3s(battery_type, full_voltage):
+        curve = HEALTHY_BATTERY_CURVE_LITHIUM_3S
+    else:
+        try:
+            chemistry = BatteryType(battery_type)
+        except ValueError:
+            chemistry = BatteryType.LEAD_ACID
+        curve = HEALTHY_BATTERY_CURVES[chemistry]
     return round(_interpolate_curve(v_norm, curve), 1)
 
 
@@ -182,6 +206,7 @@ def decode_telemetry(
     data: bytes,
     *,
     battery_type: int = BatteryType.LEAD_ACID,
+    full_voltage: float | None = None,
 ) -> TelemetryData:
     """Decode the 20-byte telemetry payload from registers 0x0001..0x000A."""
     if len(data) < TELEMETRY_RESPONSE_BYTES:
@@ -221,7 +246,9 @@ def decode_telemetry(
         total_power_resets=total_power_resets,
         total_generation=total_generation,
         battery_percent=calculate_battery_percent(voltage),
-        healthy_usable_battery=calculate_healthy_usable_percent(voltage, battery_type),
+        healthy_usable_battery=calculate_healthy_usable_percent(
+            voltage, battery_type, full_voltage=full_voltage
+        ),
         solar_power=round(voltage * charge_current, 1),
         load_power=round(voltage * discharge_current, 1),
     )
@@ -230,12 +257,14 @@ def decode_telemetry(
 def recalculate_telemetry_for_battery_type(
     telemetry: TelemetryData,
     battery_type: int,
+    *,
+    full_voltage: float | None = None,
 ) -> TelemetryData:
-    """Return a copy of telemetry with healthy_usable_battery updated for battery_type."""
+    """Return a copy of telemetry with healthy_usable_battery updated for battery settings."""
     return replace(
         telemetry,
         healthy_usable_battery=calculate_healthy_usable_percent(
-            telemetry.battery_voltage, battery_type
+            telemetry.battery_voltage, battery_type, full_voltage=full_voltage
         ),
     )
 

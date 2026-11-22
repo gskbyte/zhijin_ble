@@ -140,6 +140,21 @@ SYSTEM_24V_THRESHOLD = 17.0
 # Current threshold (A) above which charging/discharging is considered active.
 ACTIVE_CURRENT_THRESHOLD = 0.1
 
+# Normalized 12V full-voltage threshold distinguishing 3S Li-ion (<= 13.0V, e.g. 12.6V)
+# from 4S LiFePO4 (> 13.0V, e.g. 14.4V / 14.6V) when battery_type == LITHIUM.
+LITHIUM_3S_FULL_VOLTAGE_THRESHOLD = 13.0
+
+# 3S Li-ion (NMC, 11.1V nominal / 12.6V full) safe usable curve:
+# 10.5V (3.50V/cell safe floor above 10.0V cutoff) -> 0%, 12.6V (4.20V/cell) -> 100%.
+HEALTHY_BATTERY_CURVE_LITHIUM_3S: tuple[tuple[float, float], ...] = (
+    (10.5, 0.0),
+    (11.1, 20.0),
+    (11.4, 40.0),
+    (11.8, 70.0),
+    (12.3, 90.0),
+    (12.6, 100.0),
+)
+
 # Piecewise linear curves mapping normalized 12V voltage -> healthy usable %.
 HEALTHY_BATTERY_CURVES: dict[BatteryType, tuple[tuple[float, float], ...]] = {
     # LiFePO4 4S baseline: safe usable range ~12.2V - 13.4V

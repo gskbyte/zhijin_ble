@@ -133,11 +133,16 @@ class TestEntities:
         assert by_key["poll_latency"].native_value == 82.5
         assert by_key["connection_success_rate"].native_value == 100.0
 
-        # Healthy usable battery at 13.2V Lithium = 70% while charging -> mdi:battery-charging-70
+        # Healthy usable battery at 13.2V Lithium (without full_voltage -> 4S LiFePO4 = 70%),
+        # while REAL_SETTINGS has full_voltage=12.6V so battery_profile identifies 3S Li-ion
         healthy = by_key["healthy_usable_battery"]
         assert healthy.native_value == 70.0
         assert healthy.icon == "mdi:battery-charging-70"
-        assert healthy.extra_state_attributes == {"charging": True, "battery_type": "Lithium"}
+        assert healthy.extra_state_attributes == {
+            "charging": True,
+            "battery_type": "Lithium",
+            "battery_profile": "3S Li-ion",
+        }
 
         # Switch to discharging/idle at 12.0V Lithium = 0% -> mdi:battery-outline
         coordinator.data.telemetry = decode_telemetry(

@@ -420,6 +420,7 @@ async def _cmd_monitor(args: argparse.Namespace) -> int:
                     telemetry, settings = await client.poll(
                         include_settings=fetch_settings,
                         battery_type=last_settings.battery_type if last_settings else None,
+                        full_voltage=last_settings.full_voltage if last_settings else None,
                     )
                     elapsed_ms = (time.monotonic() - poll_started) * 1000.0
                     last_telemetry = telemetry
@@ -589,7 +590,10 @@ async def _cmd_write(args: argparse.Namespace) -> int:
         print("Write verified! Current settings:")
         print(
             format_telemetry_block(
-                await client.read_telemetry(battery_type=settings.battery_type),
+                await client.read_telemetry(
+                    battery_type=settings.battery_type,
+                    full_voltage=settings.full_voltage,
+                ),
                 settings,
             )
         )

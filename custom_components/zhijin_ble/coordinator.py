@@ -115,11 +115,13 @@ class ZhiJinCoordinator(DataUpdateCoordinator[ControllerState]):
             has_settings=self._state.settings is not None
         )
         battery_type = self._state.settings.battery_type if self._state.settings else None
+        full_voltage = self._state.settings.full_voltage if self._state.settings else None
 
         try:
             telemetry, settings = await self.client.poll(
                 include_settings=fetch_settings,
                 battery_type=battery_type,
+                full_voltage=full_voltage,
             )
         except Exception as err:
             return self._handle_poll_failure(err)
@@ -212,6 +214,7 @@ class ZhiJinCoordinator(DataUpdateCoordinator[ControllerState]):
                 self._state.telemetry = recalculate_telemetry_for_battery_type(
                     self._state.telemetry,
                     settings.battery_type,
+                    full_voltage=settings.full_voltage,
                 )
             self.scheduler.mark_settings_fetched()
         else:

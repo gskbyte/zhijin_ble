@@ -29,6 +29,7 @@ from custom_components.zhijin_ble.ble.protocol import (
     decode_telemetry,
     decode_write_ack,
     encode_voltage,
+    is_lithium_3s,
     recalculate_telemetry_for_battery_type,
     verify_crc,
 )
@@ -248,6 +249,54 @@ class TestTelemetryAndSettingsDecoders:
         updated = recalculate_telemetry_for_battery_type(telem, BatteryType.LEAD_ACID)
         assert updated.healthy_usable_battery == 20.0
         assert updated.battery_voltage == telem.battery_voltage
+
+        # Recalculating with 3S Li-ion full_voltage (12.6V) switches to 3S Li-ion curve
+        updated_3s = recalculate_telemetry_for_battery_type(
+            telem, BatteryType.LITHIUM, full_voltage=12.6
+        )
+        assert updated_3s.healthy_usable_battery == 82.0
+
+    @pytest.mark.parametrize(
+        ("voltage", "full_voltage", "expected"),
+        [
+            # 3S Li-ion (12.6V full)
+            (10.0, 12.6, 0.0),
+            (10.5, 12.6, 0.0),
+            (11.1, 12.6, 20.0),
+            (11.4, 12.6, 40.0),
+            (11.8, 12.6, 70.0),
+            (12.0, 12.6, 78.0),
+            (12.1, 12.6, 82.0),
+            (12.3, 12.6, 90.0),
+            (12.4, 12.6, 93.3),
+            (12.6, 12.6, 100.0),
+            # 6S Li-ion 24V system (25.2V full -> normalized 12.6V <= 13.0V)
+            (24.8, 25.2, 93.3),
+            (25.2, 25.2, 100.0),
+            # 4S LiFePO4 (14.4V full -> normalized 14.4V > 13.0V)
+            (12.4, 14.4, 7.5),
+            (13.2, 14.4, 70.0),
+            (13.4, 14.4, 100.0),
+            # 8S LiFePO4 24V system (28.8V full -> normalized 14.4V > 13.0V)
+            (26.4, 28.8, 70.0),
+        ],
+    )
+    def test_healthy_usable_battery_lithium_3s_vs_4s(
+        self, voltage: float, full_voltage: float, expected: float
+    ) -> None:
+        assert calculate_healthy_usable_percent(
+            voltage, BatteryType.LITHIUM, full_voltage=full_voltage
+        ) == pytest.approx(expected, abs=0.1)
+
+    def test_is_lithium_3s_detection(self) -> None:
+        assert is_lithium_3s(BatteryType.LITHIUM, 12.6) is True
+        assert is_lithium_3s(BatteryType.LITHIUM, 13.0) is True
+        assert is_lithium_3s(BatteryType.LITHIUM, 25.2) is True
+        assert is_lithium_3s(BatteryType.LITHIUM, 14.4) is False
+        assert is_lithium_3s(BatteryType.LITHIUM, 28.8) is False
+        assert is_lithium_3s(BatteryType.LITHIUM, None) is False
+        assert is_lithium_3s(BatteryType.GEL, 12.6) is False
+        assert is_lithium_3s(BatteryType.LEAD_ACID, 12.6) is False
 
     def test_decode_write_ack_validation(self) -> None:
         parser = ModbusFrameParser()
