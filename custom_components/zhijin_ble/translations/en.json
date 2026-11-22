@@ -12,10 +12,6 @@
           "poll_interval": "Poll Interval (seconds)",
           "power_save_mode": "Power-Saving Polling Mode",
           "power_save_interval": "Power-Saving Poll Interval (seconds)"
-        },
-        "data_description": {
-          "connection_mode": "On-Demand connects only during each poll to reduce controller radio power draw and free Bluetooth proxy slots. Persistent keeps the connection open for fastest switch response.",
-          "power_save_mode": "Automatically slows down polling when solar/load activity is idle to reduce controller power usage."
         }
       },
       "bluetooth_confirm": {
@@ -53,7 +49,7 @@
     "step": {
       "init": {
         "title": "ZhiJin BLE Settings",
-        "description": "Tune polling intervals, power-saving behavior, and BLE retry parameters.",
+        "description": "Tune polling intervals, power-saving behavior, BLE retry parameters, and calibration.",
         "data": {
           "connection_mode": "Connection Mode",
           "poll_interval": "Poll Interval (seconds)",
@@ -67,10 +63,24 @@
           "temperature_offset": "Temperature Calibration Offset (°C)"
         },
         "data_description": {
-          "connection_mode": "on_demand disconnects between polls (best stability & lowest power); persistent stays connected.",
-          "power_save_mode": "off: always use normal interval; night_idle: slow down when solar is off and currents are 0; night: slow down whenever solar is off; idle: slow down whenever currents are 0.",
           "temperature_offset": "Offset added to the controller's raw temperature reading (e.g. -5.3 to compensate for internal PCB self-heating)."
         }
+      }
+    }
+  },
+  "selector": {
+    "connection_mode": {
+      "options": {
+        "on_demand": "On-demand — Connect only during each poll (lowest controller power, frees BLE proxy slots, allows mobile app between polls)",
+        "persistent": "Persistent — Keep BLE connection open continuously (fastest switch response and short poll intervals)"
+      }
+    },
+    "power_save_mode": {
+      "options": {
+        "night_idle": "Night & idle — Slow down when solar is off and charge/discharge currents are 0 A",
+        "night": "Night only — Slow down whenever solar is off",
+        "idle": "Idle — Slow down whenever charge and discharge currents are 0 A (including cloudy daytime)",
+        "off": "Off — Always poll at the normal interval"
       }
     }
   },

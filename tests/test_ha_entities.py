@@ -22,7 +22,12 @@ from custom_components.zhijin_ble.binary_sensor import (
 from custom_components.zhijin_ble.binary_sensor import (
     async_setup_entry as setup_binary_sensors,
 )
-from custom_components.zhijin_ble.ble.const import BatteryType, SettingsRegister
+from custom_components.zhijin_ble.ble.const import (
+    BatteryType,
+    ConnectionMode,
+    PowerSaveMode,
+    SettingsRegister,
+)
 from custom_components.zhijin_ble.ble.models import ControllerState
 from custom_components.zhijin_ble.ble.protocol import decode_settings, decode_telemetry
 from custom_components.zhijin_ble.const import CONF_ADDRESS, CONF_NAME
@@ -280,3 +285,10 @@ class TestManifestAndTranslationsIntegrity:
             assert desc.key in entities["select"]
         assert "load_switch" in entities["switch"]
         assert "device_offline" in en["issues"]
+
+        # Selector option descriptions cover every ConnectionMode and PowerSaveMode value
+        selectors = en["selector"]
+        for mode in ConnectionMode:
+            assert mode.value in selectors["connection_mode"]["options"]
+        for ps_mode in PowerSaveMode:
+            assert ps_mode.value in selectors["power_save_mode"]["options"]

@@ -11,6 +11,11 @@ from homeassistant.components.bluetooth import (
     async_discovered_service_info,
 )
 from homeassistant.core import callback
+from homeassistant.helpers.selector import (
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 
 from .ble.const import (
     DEVICE_NAME_PREFIX,
@@ -37,35 +42,56 @@ from .const import (
 
 MANUAL_ADDRESS_OPTION = "__manual__"
 
-CONNECTION_MODE_OPTIONS = [m.value for m in ConnectionMode]
-POWER_SAVE_MODE_OPTIONS = [m.value for m in PowerSaveMode]
+CONNECTION_MODE_SELECTOR = SelectSelector(
+    SelectSelectorConfig(
+        options=[m.value for m in ConnectionMode],
+        mode=SelectSelectorMode.LIST,
+        translation_key="connection_mode",
+    )
+)
+
+POWER_SAVE_MODE_SELECTOR = SelectSelector(
+    SelectSelectorConfig(
+        options=[m.value for m in PowerSaveMode],
+        mode=SelectSelectorMode.LIST,
+        translation_key="power_save_mode",
+    )
+)
 
 
 def _normalize_address(address: str) -> str:
     return address.strip().upper()
 
 
+def _primary_option_fields(current: dict[str, Any] | None = None) -> dict[vol.Marker, Any]:
+    """Primary connection & power-saving fields shared across setup and options steps."""
+    merged = {**DEFAULT_OPTIONS, **(current or {})}
+    return {
+        vol.Required(
+            CONF_CONNECTION_MODE,
+            default=merged[CONF_CONNECTION_MODE],
+        ): CONNECTION_MODE_SELECTOR,
+        vol.Required(
+            CONF_POLL_INTERVAL,
+            default=int(merged[CONF_POLL_INTERVAL]),
+        ): vol.All(vol.Coerce(int), vol.Range(min=10, max=3600)),
+        vol.Required(
+            CONF_POWER_SAVE_MODE,
+            default=merged[CONF_POWER_SAVE_MODE],
+        ): POWER_SAVE_MODE_SELECTOR,
+        vol.Required(
+            CONF_POWER_SAVE_INTERVAL,
+            default=int(merged[CONF_POWER_SAVE_INTERVAL]),
+        ): vol.All(vol.Coerce(int), vol.Range(min=60, max=3600)),
+    }
+
+
 def _options_schema(current: dict[str, Any]) -> vol.Schema:
-    """Build voluptuous schema for connection and power-saving options."""
+    """Build voluptuous schema for connection, power-saving, and calibration options."""
     merged = {**DEFAULT_OPTIONS, **current}
     return vol.Schema(
         {
-            vol.Required(
-                CONF_CONNECTION_MODE,
-                default=merged[CONF_CONNECTION_MODE],
-            ): vol.In(CONNECTION_MODE_OPTIONS),
-            vol.Required(
-                CONF_POLL_INTERVAL,
-                default=int(merged[CONF_POLL_INTERVAL]),
-            ): vol.All(vol.Coerce(int), vol.Range(min=10, max=3600)),
-            vol.Required(
-                CONF_POWER_SAVE_MODE,
-                default=merged[CONF_POWER_SAVE_MODE],
-            ): vol.In(POWER_SAVE_MODE_OPTIONS),
-            vol.Required(
-                CONF_POWER_SAVE_INTERVAL,
-                default=int(merged[CONF_POWER_SAVE_INTERVAL]),
-            ): vol.All(vol.Coerce(int), vol.Range(min=60, max=3600)),
+            **_primary_option_fields(merged),
             vol.Required(
                 CONF_SETTINGS_INTERVAL,
                 default=int(merged[CONF_SETTINGS_INTERVAL]),
@@ -95,28 +121,6 @@ def _options_schema(current: dict[str, Any]) -> vol.Schema:
             ),
         }
     )
-
-
-def _primary_option_fields() -> dict[vol.Marker, Any]:
-    """Primary connection & power-saving fields shared across setup steps."""
-    return {
-        vol.Required(
-            CONF_CONNECTION_MODE,
-            default=DEFAULT_OPTIONS[CONF_CONNECTION_MODE],
-        ): vol.In(CONNECTION_MODE_OPTIONS),
-        vol.Required(
-            CONF_POLL_INTERVAL,
-            default=DEFAULT_OPTIONS[CONF_POLL_INTERVAL],
-        ): vol.All(vol.Coerce(int), vol.Range(min=10, max=3600)),
-        vol.Required(
-            CONF_POWER_SAVE_MODE,
-            default=DEFAULT_OPTIONS[CONF_POWER_SAVE_MODE],
-        ): vol.In(POWER_SAVE_MODE_OPTIONS),
-        vol.Required(
-            CONF_POWER_SAVE_INTERVAL,
-            default=DEFAULT_OPTIONS[CONF_POWER_SAVE_INTERVAL],
-        ): vol.All(vol.Coerce(int), vol.Range(min=60, max=3600)),
-    }
 
 
 def _extract_initial_options(user_input: dict[str, Any]) -> dict[str, Any]:

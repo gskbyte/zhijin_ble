@@ -318,6 +318,31 @@ def install_ha_stubs() -> dict[str, Any]:
     ep_mod = _mod("homeassistant.helpers.entity_platform")
     ep_mod.AddEntitiesCallback = Callable[[Any], None]
 
+    sel_helper_mod = _mod("homeassistant.helpers.selector")
+
+    class SelectSelectorMode(StrEnum):
+        LIST = "list"
+        DROPDOWN = "dropdown"
+
+    @dataclass
+    class SelectSelectorConfig:
+        options: list[str]
+        mode: SelectSelectorMode = SelectSelectorMode.DROPDOWN
+        translation_key: str | None = None
+
+    class SelectSelector:
+        def __init__(self, config: SelectSelectorConfig) -> None:
+            self.config = config
+
+        def __call__(self, value: Any) -> str:
+            if value not in self.config.options:
+                raise ValueError(f"Invalid option {value!r}; expected one of {self.config.options}")
+            return str(value)
+
+    sel_helper_mod.SelectSelectorMode = SelectSelectorMode
+    sel_helper_mod.SelectSelectorConfig = SelectSelectorConfig
+    sel_helper_mod.SelectSelector = SelectSelector
+
     uc_mod = _mod("homeassistant.helpers.update_coordinator")
 
     class UpdateFailed(Exception):
