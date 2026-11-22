@@ -19,7 +19,7 @@ A **Home Assistant custom integration** and **standalone macOS/Linux BLE library
   - Duplicate notification burst absorption and inter-command drain spacing so trailing burst copies are handled cleanly without collisions.
   - In-session command retries, clean reconnect recovery, race-safe disconnect handling with immediate waiter wakeup, and configurable transient failure tolerance.
 - **Full Home Assistant Integration**:
-  - Automatic Bluetooth discovery (`ZJ*`), manual address fallback, and a full **Options Flow** for runtime tuning (including **Temperature Calibration Offset**).
+  - Automatic Bluetooth discovery (`ZJBE*` / `ZJ-*`), manual `ZJ*` scan & address fallback, and a full **Options Flow** for runtime tuning (including **Temperature Calibration Offset**).
   - Telemetry sensors, chemistry-aware **Healthy Usable Battery (%)** with dynamic charging icons, load/solar power sensors, diagnostic link metrics (RSSI, poll latency, command success rate, connectivity, power-save state), Repairs alerts for prolonged outages, and one-click Diagnostics download.
   - Serialized setting writes (`0x10`) with accurate voltage rounding and in-session readback verification.
 - **Standalone macOS / Desktop CLI (`zhijin-ble`)**: Pure-Python `ble/` package with zero Home Assistant dependencies for direct scanning, one-shot reads, setting writes, GATT probing, and multi-hour soak tests with raw hex tracing and JSONL session logs.

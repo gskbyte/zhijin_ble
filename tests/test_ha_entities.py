@@ -278,7 +278,14 @@ class TestManifestAndTranslationsIntegrity:
         assert manifest["config_flow"] is True
         assert manifest["categories"] == ["energy"]
         assert manifest["issue_tracker"].endswith("/issues")
-        assert any(rule.get("local_name") == "ZJ*" for rule in manifest["bluetooth"])
+        assert len(manifest["bluetooth"]) >= 1
+        assert any(rule.get("local_name") == "ZJBE*" for rule in manifest["bluetooth"])
+        # Enforce Home Assistant bluetooth/match.py rule: no wildcards in first 3 chars
+        for rule in manifest["bluetooth"]:
+            local_name = rule.get("local_name")
+            if local_name is not None:
+                assert len(local_name) >= 3
+                assert not any(ch in local_name[:3] for ch in ("*", "?", "["))
 
         hacs = json.loads((INTEGRATION_DIR.parent.parent / "hacs.json").read_text(encoding="utf-8"))
         assert hacs["name"] == "ZhiJin BLE"

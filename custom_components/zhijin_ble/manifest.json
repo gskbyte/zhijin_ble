@@ -3,7 +3,12 @@
   "name": "ZhiJin BLE",
   "bluetooth": [
     {
-      "local_name": "ZJ*"
+      "local_name": "ZJBE*",
+      "connectable": true
+    },
+    {
+      "local_name": "ZJ-*",
+      "connectable": true
     }
   ],
   "categories": [
