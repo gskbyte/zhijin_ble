@@ -27,9 +27,6 @@ from .ble.models import SettingsData
 from .coordinator import ZhiJinCoordinator
 from .entity import ZhiJinEntity
 
-# Use native TEMPERATURE_DELTA when supported (HA 2025+), avoiding absolute °C->°F +32 shift.
-_TEMPERATURE_DELTA_DEVICE_CLASS = getattr(NumberDeviceClass, "TEMPERATURE_DELTA", None)
-
 
 @dataclass(frozen=True, kw_only=True)
 class ZhiJinNumberEntityDescription(NumberEntityDescription):
@@ -80,7 +77,7 @@ NUMBER_DESCRIPTIONS: tuple[ZhiJinNumberEntityDescription, ...] = (
 
 TEMPERATURE_OFFSET_DESCRIPTION = NumberEntityDescription(
     key="temperature_offset",
-    device_class=_TEMPERATURE_DELTA_DEVICE_CLASS,
+    device_class=NumberDeviceClass.TEMPERATURE_DELTA,
     icon="mdi:thermometer-plus",
     native_unit_of_measurement=UnitOfTemperature.CELSIUS,
     native_min_value=TEMPERATURE_OFFSET_RANGE[0],

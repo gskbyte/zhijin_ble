@@ -125,6 +125,9 @@ def install_ha_stubs() -> dict[str, Any]:
             self.unloaded.append((entry, list(platforms)))
             return True
 
+        async def async_unload_platforms_or_raise(self, entry: Any, platforms: list[Any]) -> None:
+            self.unloaded.append((entry, list(platforms)))
+
         async def async_reload(self, entry_id: str) -> None:
             self.reloaded.append(entry_id)
 

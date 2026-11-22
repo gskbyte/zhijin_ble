@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import struct
 from pathlib import Path
 from unittest.mock import AsyncMock
 
@@ -275,10 +276,26 @@ class TestManifestAndTranslationsIntegrity:
         assert manifest["domain"] == "zhijin_ble"
         assert manifest["name"] == "ZhiJin BLE"
         assert manifest["config_flow"] is True
+        assert manifest["categories"] == ["energy"]
+        assert manifest["issue_tracker"].endswith("/issues")
         assert any(rule.get("local_name") == "ZJ*" for rule in manifest["bluetooth"])
 
         hacs = json.loads((INTEGRATION_DIR.parent.parent / "hacs.json").read_text(encoding="utf-8"))
         assert hacs["name"] == "ZhiJin BLE"
+        assert hacs["homeassistant"] == "2026.11.0"
+
+    @pytest.mark.parametrize(
+        ("filename", "expected_size"),
+        [("icon.png", 256), ("icon@2x.png", 512)],
+    )
+    def test_local_brand_icons_meet_ha_spec(self, filename: str, expected_size: int) -> None:
+        raw = (INTEGRATION_DIR / "brand" / filename).read_bytes()
+        assert raw[:8] == b"\x89PNG\r\n\x1a\n"
+        assert raw[12:16] == b"IHDR"
+        width, height, bit_depth, color_type = struct.unpack(">IIBB", raw[16:26])
+        assert (width, height) == (expected_size, expected_size)
+        assert bit_depth == 8
+        assert color_type == 6  # RGBA (transparent background)
 
     def test_only_english_translation_exists_and_matches_all_entity_keys(self) -> None:
         trans_dir = INTEGRATION_DIR / "translations"

@@ -1,5 +1,8 @@
 # ZhiJin BLE
 
+> [!NOTE]
+> **Disclaimer**: This project was created with the assistance of **Gemini**. The BLE GATT UUIDs and Modbus RTU frame decoding are based on the reverse-engineering work in [wescom-code/zhijinpower_ble](https://github.com/wescom-code/zhijinpower_ble).
+
 A **Home Assistant custom integration** and **standalone macOS/Linux BLE library & debug CLI** for ZhiJinPower (`ZJ*`) Bluetooth solar charge controllers.
 
 ---
@@ -46,6 +49,7 @@ custom_components/zhijin_ble/
 ├── number.py            # Full / Cutoff / Recovery voltage configuration entities
 ├── select.py            # Battery type / Output mode / Voltage detect configuration entities
 ├── diagnostics.py       # One-click Home Assistant diagnostic dump
+├── brand/               # Local brand icons (icon.png 256px, icon@2x.png 512px)
 └── translations/        # English translations (en.json)
 ```
 
@@ -114,12 +118,12 @@ Every parameter can be adjusted anytime from **Settings → Devices & Services �
 
 ---
 
-## Home Assistant Installation
+## Home Assistant Installation (2026.11+)
 
-### Via HACS (Custom Repository)
-1. Open **HACS → Integrations → ⋮ → Custom repositories**.
+### Via Marketplace (Recommended)
+1. Open **Settings → Marketplace → ⋮ → Custom repositories**.
 2. Add this repository URL with category **Integration**.
-3. Install **ZhiJin BLE** and restart Home Assistant.
+3. Install **ZhiJin BLE**.
 4. Go to **Settings → Devices & Services** — your `ZJ*` controller should be auto-discovered, or click **Add Integration → ZhiJin BLE**.
 
 ### Manual Installation

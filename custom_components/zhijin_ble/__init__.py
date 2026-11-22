@@ -28,7 +28,7 @@ else:
     ZhiJinConfigEntry = object
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ZhiJinConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ZhiJinConfigEntry) -> None:
     """Set up ZhiJin BLE from a config entry."""
     from homeassistant.const import EVENT_HOMEASSISTANT_STOP, Platform
 
@@ -54,10 +54,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ZhiJinConfigEntry) -> bo
     entry.async_on_unload(entry.add_update_listener(_async_reload_entry))
 
     await hass.config_entries.async_forward_entry_setups(entry, platforms)
-    return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ZhiJinConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: ZhiJinConfigEntry) -> None:
     """Unload a ZhiJin BLE config entry."""
     from homeassistant.const import Platform
     from homeassistant.helpers.issue_registry import async_delete_issue
@@ -70,13 +69,17 @@ async def async_unload_entry(hass: HomeAssistant, entry: ZhiJinConfigEntry) -> b
         Platform.SWITCH,
     ]
 
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, platforms)
+    unload_or_raise = getattr(hass.config_entries, "async_unload_platforms_or_raise", None)
+    if unload_or_raise is not None:
+        await unload_or_raise(entry, platforms)
+        unload_ok = True
+    else:
+        unload_ok = await hass.config_entries.async_unload_platforms(entry, platforms)
+
     if unload_ok:
         coordinator: ZhiJinCoordinator = entry.runtime_data
         await coordinator.async_shutdown_ble()
         async_delete_issue(hass, DOMAIN, offline_issue_id(entry.data[CONF_ADDRESS]))
-
-    return unload_ok
 
 
 async def _async_reload_entry(hass: HomeAssistant, entry: ZhiJinConfigEntry) -> None:

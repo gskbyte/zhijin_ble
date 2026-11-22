@@ -201,7 +201,7 @@ class TestZhiJinCoordinator:
                 new=AsyncMock(),
             ) as mock_disc,
         ):
-            assert await async_setup_entry(hass, entry) is True
+            assert await async_setup_entry(hass, entry) is None
             assert isinstance(entry.runtime_data, ZhiJinCoordinator)
             assert len(hass.config_entries.forwarded) == 1
             assert EVENT_HOMEASSISTANT_STOP in hass.bus.listeners
@@ -211,7 +211,7 @@ class TestZhiJinCoordinator:
             assert mock_disc.await_count == 1
 
             # Unload entry disconnects BLE and deletes any offline issue
-            assert await async_unload_entry(hass, entry) is True
+            assert await async_unload_entry(hass, entry) is None
             assert mock_disc.await_count == 2
             assert (DOMAIN, offline_issue_id("25:08:00:00:0A:BA")) in ha_state["deleted_issues"]
 
