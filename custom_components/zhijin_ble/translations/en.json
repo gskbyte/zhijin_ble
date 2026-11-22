@@ -1,5 +1,4 @@
 {
-  "title": "ZhiJin BLE",
   "config": {
     "flow_title": "{name}",
     "step": {
@@ -158,22 +157,33 @@
       "battery_type": {
         "name": "Battery Type",
         "state": {
-          "Lithium": "Lithium",
-          "Gel": "Gel",
-          "Lead-Acid": "Lead-Acid"
+          "lithium": "Lithium",
+          "gel": "Gel",
+          "lead_acid": "Lead-Acid"
         }
       },
       "output_mode": {
         "name": "Output Mode",
         "state": {
-          "Manual": "Manual",
-          "Auto": "Auto",
-          "Timer": "Timer",
-          "Direct": "Direct"
+          "manual": "Manual",
+          "auto": "Auto",
+          "timer": "Timer",
+          "direct": "Direct"
         }
       },
       "voltage_detect_mode": {
-        "name": "Voltage Detect Mode"
+        "name": "Voltage Detect Mode",
+        "state": {
+          "auto": "Auto",
+          "12v": "12V",
+          "24v": "24V",
+          "36v": "36V",
+          "48v": "48V",
+          "60v": "60V",
+          "72v": "72V",
+          "84v": "84V",
+          "96v": "96V"
+        }
       }
     },
     "switch": {

@@ -13,14 +13,40 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import ZhiJinConfigEntry
 from .ble.const import (
-    BATTERY_TYPE_LABELS,
-    OUTPUT_MODE_LABELS,
-    VOLTAGE_DETECT_MODE_LABELS,
+    BatteryType,
+    OutputMode,
     SettingsRegister,
+    VoltageDetectMode,
 )
 from .ble.models import SettingsData
 from .coordinator import ZhiJinCoordinator
 from .entity import ZhiJinEntity
+
+# Lowercase translation-key option values required by Home Assistant hassfest.
+BATTERY_TYPE_OPTIONS: dict[BatteryType, str] = {
+    BatteryType.LITHIUM: "lithium",
+    BatteryType.GEL: "gel",
+    BatteryType.LEAD_ACID: "lead_acid",
+}
+
+OUTPUT_MODE_OPTIONS: dict[OutputMode, str] = {
+    OutputMode.MANUAL: "manual",
+    OutputMode.AUTO: "auto",
+    OutputMode.TIMER: "timer",
+    OutputMode.DIRECT: "direct",
+}
+
+VOLTAGE_DETECT_MODE_OPTIONS: dict[VoltageDetectMode, str] = {
+    VoltageDetectMode.AUTO: "auto",
+    VoltageDetectMode.V12: "12v",
+    VoltageDetectMode.V24: "24v",
+    VoltageDetectMode.V36: "36v",
+    VoltageDetectMode.V48: "48v",
+    VoltageDetectMode.V60: "60v",
+    VoltageDetectMode.V72: "72v",
+    VoltageDetectMode.V84: "84v",
+    VoltageDetectMode.V96: "96v",
+}
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -36,8 +62,8 @@ SELECT_DESCRIPTIONS: tuple[ZhiJinSelectEntityDescription, ...] = (
     ZhiJinSelectEntityDescription(
         key="battery_type",
         register=SettingsRegister.BATTERY_TYPE,
-        options_map=BATTERY_TYPE_LABELS,
-        options=list(BATTERY_TYPE_LABELS.values()),
+        options_map=BATTERY_TYPE_OPTIONS,
+        options=list(BATTERY_TYPE_OPTIONS.values()),
         icon="mdi:battery",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda s: s.battery_type,
@@ -45,8 +71,8 @@ SELECT_DESCRIPTIONS: tuple[ZhiJinSelectEntityDescription, ...] = (
     ZhiJinSelectEntityDescription(
         key="output_mode",
         register=SettingsRegister.OUTPUT_MODE,
-        options_map=OUTPUT_MODE_LABELS,
-        options=list(OUTPUT_MODE_LABELS.values()),
+        options_map=OUTPUT_MODE_OPTIONS,
+        options=list(OUTPUT_MODE_OPTIONS.values()),
         icon="mdi:brightness-auto",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda s: s.output_mode,
@@ -54,8 +80,8 @@ SELECT_DESCRIPTIONS: tuple[ZhiJinSelectEntityDescription, ...] = (
     ZhiJinSelectEntityDescription(
         key="voltage_detect_mode",
         register=SettingsRegister.VOLTAGE_DETECT_MODE,
-        options_map=VOLTAGE_DETECT_MODE_LABELS,
-        options=list(VOLTAGE_DETECT_MODE_LABELS.values()),
+        options_map=VOLTAGE_DETECT_MODE_OPTIONS,
+        options=list(VOLTAGE_DETECT_MODE_OPTIONS.values()),
         icon="mdi:current-dc",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda s: s.voltage_detect_mode,

@@ -241,22 +241,26 @@ class TestEntities:
         assert coordinator.data.calibrated_temperature == 19.2
         assert entry.options["temperature_offset"] == -5.3
 
-        # Selects
+        # Selects (lowercase translation option keys per HA hassfest)
         selects = []
         await setup_selects(hass, entry, selects.extend)
         sel_by_key = {e.entity_description.key: e for e in selects}
         assert len(sel_by_key) == len(SELECT_DESCRIPTIONS)
-        assert sel_by_key["battery_type"].current_option == "Lithium"
-        assert sel_by_key["output_mode"].current_option == "Manual"
-        assert sel_by_key["voltage_detect_mode"].current_option == "Auto"
+        assert sel_by_key["battery_type"].current_option == "lithium"
+        assert sel_by_key["output_mode"].current_option == "manual"
+        assert sel_by_key["voltage_detect_mode"].current_option == "auto"
 
-        await sel_by_key["battery_type"].async_select_option("Gel")
+        await sel_by_key["battery_type"].async_select_option("gel")
         coordinator.async_write_register.assert_awaited_with(SettingsRegister.BATTERY_TYPE, 2)
-        await sel_by_key["output_mode"].async_select_option("Auto")
+        await sel_by_key["output_mode"].async_select_option("auto")
         coordinator.async_write_register.assert_awaited_with(SettingsRegister.OUTPUT_MODE, 1)
+        await sel_by_key["voltage_detect_mode"].async_select_option("12v")
+        coordinator.async_write_register.assert_awaited_with(
+            SettingsRegister.VOLTAGE_DETECT_MODE, 1
+        )
 
         with pytest.raises(ValueError):
-            await sel_by_key["battery_type"].async_select_option("InvalidChemistry")
+            await sel_by_key["battery_type"].async_select_option("invalid_chemistry")
 
     async def test_diagnostics_redacts_bluetooth_address(self) -> None:
         hass, entry, _coordinator = _make_populated_entry()
@@ -273,11 +277,20 @@ class TestManifestAndTranslationsIntegrity:
 
     def test_manifest_and_hacs_are_valid_json(self) -> None:
         manifest = json.loads((INTEGRATION_DIR / "manifest.json").read_text(encoding="utf-8"))
+        # Hassfest requires domain, name, then alphabetical keys
+        keys = list(manifest.keys())
+        assert keys[:2] == ["domain", "name"]
+        assert keys[2:] == sorted(keys[2:])
+
         assert manifest["domain"] == "zhijin_ble"
         assert manifest["name"] == "ZhiJin BLE"
         assert manifest["config_flow"] is True
+        assert manifest["integration_type"] == "device"
         assert manifest["categories"] == ["energy"]
+        assert len(manifest["codeowners"]) >= 1
+        assert all(owner.startswith("@") for owner in manifest["codeowners"])
         assert manifest["issue_tracker"].endswith("/issues")
+        assert "requirements" not in manifest  # bleak / bleak-retry-connector provided by HA bluetooth
         assert len(manifest["bluetooth"]) >= 1
         assert any(rule.get("local_name") == "ZJBE*" for rule in manifest["bluetooth"])
         # Enforce Home Assistant bluetooth/match.py rule: no wildcards in first 3 chars
@@ -290,6 +303,7 @@ class TestManifestAndTranslationsIntegrity:
         hacs = json.loads((INTEGRATION_DIR.parent.parent / "hacs.json").read_text(encoding="utf-8"))
         assert hacs["name"] == "ZhiJin BLE"
         assert hacs["homeassistant"] == "2026.11.0"
+        assert "render_readme" not in hacs
 
     @pytest.mark.parametrize(
         ("filename", "expected_size"),
@@ -323,6 +337,11 @@ class TestManifestAndTranslationsIntegrity:
         assert TEMPERATURE_OFFSET_DESCRIPTION.key in entities["number"]
         for desc in SELECT_DESCRIPTIONS:
             assert desc.key in entities["select"]
+            state_map = entities["select"][desc.key]["state"]
+            assert desc.options is not None
+            for opt in desc.options:
+                assert opt == opt.lower()
+                assert opt in state_map
         assert "load_switch" in entities["switch"]
         assert "device_offline" in en["issues"]
 
