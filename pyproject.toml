@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "zhijin-ble"
+version = "1.0.0"
+description = "Reliable BLE Modbus library, macOS debug CLI, and Home Assistant integration for ZhiJin solar controllers."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "bleak>=0.21.0",
+    "bleak-retry-connector>=3.5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=5.0.0",
+    "ruff>=0.6.0",
+    "voluptuous>=0.14.0",
+]
+
+[project.scripts]
+zhijin-ble = "custom_components.zhijin_ble.ble.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["custom_components"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "ASYNC", "RUF"]
+ignore = ["E501", "ASYNC109"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/test_ha_*.py" = ["E402"]

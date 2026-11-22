@@ -1,0 +1,178 @@
+{
+  "title": "ZhiJin BLE",
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Select ZhiJin Solar Controller",
+        "description": "Choose a discovered ZhiJin BLE controller or enter its Bluetooth address manually.",
+        "data": {
+          "address": "Controller",
+          "connection_mode": "Connection Mode",
+          "poll_interval": "Poll Interval (seconds)",
+          "power_save_mode": "Power-Saving Polling Mode",
+          "power_save_interval": "Power-Saving Poll Interval (seconds)"
+        },
+        "data_description": {
+          "connection_mode": "On-Demand connects only during each poll to reduce controller radio power draw and free Bluetooth proxy slots. Persistent keeps the connection open for fastest switch response.",
+          "power_save_mode": "Automatically slows down polling when solar/load activity is idle to reduce controller power usage."
+        }
+      },
+      "bluetooth_confirm": {
+        "title": "Add {name}",
+        "description": "Do you want to configure the ZhiJin BLE controller {name} ({address})?",
+        "data": {
+          "connection_mode": "Connection Mode",
+          "poll_interval": "Poll Interval (seconds)",
+          "power_save_mode": "Power-Saving Polling Mode",
+          "power_save_interval": "Power-Saving Poll Interval (seconds)"
+        }
+      },
+      "manual": {
+        "title": "Manual Bluetooth Address",
+        "description": "No unconfigured ZhiJin controllers are currently advertising. Enter the Bluetooth MAC address (or UUID) manually.",
+        "data": {
+          "address": "Bluetooth Address",
+          "name": "Friendly Name (optional)",
+          "connection_mode": "Connection Mode",
+          "poll_interval": "Poll Interval (seconds)",
+          "power_save_mode": "Power-Saving Polling Mode",
+          "power_save_interval": "Power-Saving Poll Interval (seconds)"
+        }
+      }
+    },
+    "error": {
+      "invalid_address": "Please enter a valid Bluetooth address."
+    },
+    "abort": {
+      "already_configured": "This controller is already configured.",
+      "no_devices_found": "No ZhiJin BLE controllers were discovered."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "ZhiJin BLE Settings",
+        "description": "Tune polling intervals, power-saving behavior, and BLE retry parameters.",
+        "data": {
+          "connection_mode": "Connection Mode",
+          "poll_interval": "Poll Interval (seconds)",
+          "power_save_mode": "Power-Saving Polling Mode",
+          "power_save_interval": "Power-Saving Poll Interval (seconds)",
+          "settings_interval": "Settings Refresh Interval (seconds)",
+          "command_timeout": "Command Timeout (seconds)",
+          "command_retries": "In-Session Command Retries",
+          "unavailable_after_failures": "Consecutive Failures Before Unavailable",
+          "offline_issue_seconds": "Offline Repair Alert Delay (seconds)",
+          "temperature_offset": "Temperature Calibration Offset (°C)"
+        },
+        "data_description": {
+          "connection_mode": "on_demand disconnects between polls (best stability & lowest power); persistent stays connected.",
+          "power_save_mode": "off: always use normal interval; night_idle: slow down when solar is off and currents are 0; night: slow down whenever solar is off; idle: slow down whenever currents are 0.",
+          "temperature_offset": "Offset added to the controller's raw temperature reading (e.g. -5.3 to compensate for internal PCB self-heating)."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery_voltage": {
+        "name": "Battery Voltage"
+      },
+      "battery_percent": {
+        "name": "Battery"
+      },
+      "healthy_usable_battery": {
+        "name": "Healthy Usable Battery"
+      },
+      "charge_current": {
+        "name": "Charge Current"
+      },
+      "solar_power": {
+        "name": "Solar Power"
+      },
+      "discharge_current": {
+        "name": "Discharge Current"
+      },
+      "load_power": {
+        "name": "Load Power"
+      },
+      "temperature": {
+        "name": "Temperature"
+      },
+      "total_generation": {
+        "name": "Total Generation"
+      },
+      "rssi": {
+        "name": "Bluetooth Signal Strength"
+      },
+      "poll_latency": {
+        "name": "Poll Latency"
+      },
+      "connection_success_rate": {
+        "name": "Command Success Rate"
+      }
+    },
+    "binary_sensor": {
+      "solar_status": {
+        "name": "Solar Status"
+      },
+      "wind_status": {
+        "name": "Wind Status"
+      },
+      "load_status": {
+        "name": "Load Status"
+      },
+      "connectivity": {
+        "name": "Bluetooth Connectivity"
+      },
+      "power_save_active": {
+        "name": "Power-Saving Polling"
+      }
+    },
+    "number": {
+      "full_voltage": {
+        "name": "Full Voltage"
+      },
+      "cutoff_voltage": {
+        "name": "Cutoff Voltage"
+      },
+      "recovery_voltage": {
+        "name": "Recovery Voltage"
+      }
+    },
+    "select": {
+      "battery_type": {
+        "name": "Battery Type",
+        "state": {
+          "Lithium": "Lithium",
+          "Gel": "Gel",
+          "Lead-Acid": "Lead-Acid"
+        }
+      },
+      "output_mode": {
+        "name": "Output Mode",
+        "state": {
+          "Manual": "Manual",
+          "Auto": "Auto",
+          "Timer": "Timer",
+          "Direct": "Direct"
+        }
+      },
+      "voltage_detect_mode": {
+        "name": "Voltage Detect Mode"
+      }
+    },
+    "switch": {
+      "load_switch": {
+        "name": "Manual Load Switch"
+      }
+    }
+  },
+  "issues": {
+    "device_offline": {
+      "title": "ZhiJin BLE controller offline ({name})",
+      "description": "Controller {name} ({address}) has been unreachable over Bluetooth for more than {minutes} minute(s). Check that the controller has power, is within Bluetooth range (or proxy coverage), and that the official mobile app is not holding the exclusive BLE connection."
+    }
+  }
+}
