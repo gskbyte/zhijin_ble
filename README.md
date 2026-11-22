@@ -3,7 +3,7 @@
 > [!NOTE]
 > **Disclaimer**: This project was created with the assistance of **Gemini**. The BLE GATT UUIDs and Modbus RTU frame decoding are based on the reverse-engineering work in [wescom-code/zhijinpower_ble](https://github.com/wescom-code/zhijinpower_ble).
 
-A **Home Assistant custom integration** and **standalone macOS/Linux BLE library & debug CLI** for ZhiJinPower (`ZJ*`) Bluetooth solar charge controllers.
+A **Home Assistant custom integration** and **standalone macOS/Linux BLE library & debug CLI** for cheap, alleged MPPT Bluetooth solar charge controllers based on ZhiJinPower (`ZJ*`) BLE modules — such as [this controller on AliExpress](https://de.aliexpress.com/item/1005007077300633.html).
 
 ---
 
