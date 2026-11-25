@@ -183,3 +183,9 @@ uv run ruff check custom_components tests
 ## Acknowledgements
 
 Many thanks to [wescom-code/zhijinpower_ble](https://github.com/wescom-code/zhijinpower_ble) for reverse-engineering and documenting the ZhiJinPower BLE GATT UUIDs, Modbus RTU frame structure, and register mappings that made decoding the controller protocol possible.
+
+---
+
+## License
+
+This project uses the GNU General Public License, version 3 only (`GPL-3.0-only`). See [LICENSE](LICENSE) for the full text.
