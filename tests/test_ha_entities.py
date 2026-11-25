@@ -287,7 +287,7 @@ class TestManifestAndTranslationsIntegrity:
         assert manifest["name"] == "ZhiJin BLE"
         assert manifest["config_flow"] is True
         assert manifest["integration_type"] == "device"
-        assert manifest["categories"] == ["energy"]
+        assert manifest["categories"] == ["energy.solar_batteries"]
         assert len(manifest["codeowners"]) >= 1
         assert all(owner.startswith("@") for owner in manifest["codeowners"])
         assert manifest["issue_tracker"].endswith("/issues")

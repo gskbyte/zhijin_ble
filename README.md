@@ -118,16 +118,34 @@ Every parameter can be adjusted anytime from **Settings → Devices & Services �
 
 ---
 
+<!-- ha-marketplace:exclude-start -->
 ## Home Assistant Installation (2026.11+)
 
-### Via Marketplace (Recommended)
+### Marketplace
+
+[![Open your Home Assistant instance and open a repository in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=gskbyte&repository=zhijin_ble&category=integration)
+
+1. Select the badge above to open this repository in the Home Assistant Marketplace.
+2. Install **ZhiJin BLE**.
+
+If you do not use the badge:
+
 1. Open **Settings → Marketplace → ⋮ → Custom repositories**.
-2. Add this repository URL with category **Integration**.
+2. Add `https://github.com/gskbyte/zhijin_ble` with the **Integration** category.
 3. Install **ZhiJin BLE**.
-4. Go to **Settings → Devices & Services** — your `ZJ*` controller should be auto-discovered, or click **Add Integration → ZhiJin BLE**.
 
 ### Manual Installation
-Copy `custom_components/zhijin_ble/` into your Home Assistant `config/custom_components/zhijin_ble/` directory and restart Home Assistant.
+
+1. Copy `custom_components/zhijin_ble/` to `config/custom_components/zhijin_ble/` on your Home Assistant host.
+2. Restart Home Assistant.
+<!-- ha-marketplace:exclude-end -->
+
+## Setup
+
+After you install the integration, Home Assistant finds nearby `ZJBE*` and `ZJ-*` controllers in **Settings → Devices & Services**.
+If Home Assistant does not find your controller, select the badge below or select **Add Integration → ZhiJin BLE**.
+
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=zhijin_ble)
 
 ---
 
