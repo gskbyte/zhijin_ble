@@ -189,3 +189,5 @@ Many thanks to [wescom-code/zhijinpower_ble](https://github.com/wescom-code/zhij
 ## License
 
 This project uses the GNU General Public License, version 3 only (`GPL-3.0-only`). See [LICENSE](LICENSE) for the full text.
+
+Parts of this project come from [wescom-code/zhijinpower_ble](https://github.com/wescom-code/zhijinpower_ble), which uses the MIT License. Refer to [NOTICE](NOTICE) for its copyright and permission notice.
