@@ -201,7 +201,7 @@ class TestZhiJinCoordinator:
                 new=AsyncMock(),
             ) as mock_disc,
         ):
-            assert await async_setup_entry(hass, entry) is None
+            assert await async_setup_entry(hass, entry) is True
             assert isinstance(entry.runtime_data, ZhiJinCoordinator)
             assert len(hass.config_entries.forwarded) == 1
             assert EVENT_HOMEASSISTANT_STOP in hass.bus.listeners
@@ -211,9 +211,28 @@ class TestZhiJinCoordinator:
             assert mock_disc.await_count == 1
 
             # Unload entry disconnects BLE and deletes any offline issue
-            assert await async_unload_entry(hass, entry) is None
+            assert await async_unload_entry(hass, entry) is True
+            assert len(hass.config_entries.unloaded) == 1
             assert mock_disc.await_count == 2
             assert (DOMAIN, offline_issue_id("25:08:00:00:0A:BA")) in ha_state["deleted_issues"]
+
+    async def test_unload_entry_returns_false_when_platform_unload_fails(self) -> None:
+        hass = HomeAssistant()
+        entry = _make_entry()
+        coordinator = ZhiJinCoordinator(hass, entry)
+        entry.runtime_data = coordinator
+
+        with (
+            patch.object(
+                hass.config_entries,
+                "async_unload_platforms",
+                new=AsyncMock(return_value=False),
+            ),
+            patch.object(coordinator, "async_shutdown_ble", new=AsyncMock()) as mock_shutdown,
+        ):
+            assert await async_unload_entry(hass, entry) is False
+            mock_shutdown.assert_not_awaited()
+            assert ha_state["deleted_issues"] == []
 
     async def test_temperature_offset_updates_live_without_reloading_ble(self) -> None:
         hass = HomeAssistant()
