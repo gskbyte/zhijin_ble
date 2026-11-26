@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "zhijin-ble"
-version = "1.0.0"
+version = "1.0.1"
 description = "Reliable BLE Modbus library, macOS debug CLI, and Home Assistant integration for ZhiJin solar controllers."
 readme = "README.md"
 license = { text = "GPL-3.0-only" }
